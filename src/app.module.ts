@@ -1,13 +1,18 @@
-import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AuthModule } from "@thallesp/nestjs-better-auth";
-import { auth } from "./lib/auth";
+import { Module } from "@nestjs/common"
+import { APP_FILTER } from "@nestjs/core"
+import { SentryGlobalFilter, SentryModule } from "@sentry/nestjs/setup"
+import { AuthModule } from "@thallesp/nestjs-better-auth"
+import { AppController } from "./app.controller"
+import { auth } from "./lib/auth"
 
 @Module({
-  imports: [
-    AuthModule.forRoot({ auth })
-  ],
-  controllers: [AppController],
-  providers: [],
+    imports: [SentryModule.forRoot(), AuthModule.forRoot({ auth })],
+    controllers: [AppController],
+    providers: [
+        {
+            provide: APP_FILTER,
+            useClass: SentryGlobalFilter,
+        },
+    ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -7,7 +7,11 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "contract:emit": "prisma-next contract emit"
+    "contract:emit": "prisma-next contract emit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.17",
@@ -16,6 +20,7 @@
     "@nestjs/swagger": "^11.4.6",
     "@prisma/orm-postgres": "^8.0.0-rc.1",
     "@scalar/nestjs-api-reference": "^1.2.14",
+    "@sentry/nestjs": "^10.70.0",
     "@thallesp/nestjs-better-auth": "^2.7.0",
     "better-auth": "^1.6.28",
     "dotenv": "^17.4.2",
@@ -25,9 +30,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
+    "@nestjs/testing": "^11.1.29",
+    "@swc/core": "^1.15.47",
     "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "prisma-next": "^8.0.0-rc.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "unplugin-swc": "^1.5.11",
+    "vitest": "^4.1.10"
   }
 }
