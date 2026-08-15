@@ -68,3 +68,144 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+enum publication_status {
+  @@type("pg/text@1")
+  draft     = "draft"
+  published = "published"
+  archived  = "archived"
+}
+
+enum question_type {
+  @@type("pg/text@1")
+  single   = "single"
+  multiple = "multiple"
+}
+
+enum question_difficulty {
+  @@type("pg/text@1")
+  easy   = "easy"
+  medium = "medium"
+  hard   = "hard"
+}
+
+enum question_source {
+  @@type("pg/text@1")
+  ai_generated = "ai_generated"
+  manual       = "manual"
+}
+
+enum content_language {
+  @@type("pg/text@1")
+  pt_BR = "pt-BR"
+  en    = "en"
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  slug      String
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([slug])
+  @@map("vendor")
+}
+
+model Certification {
+  id       String @id @default(uuid())
+  vendorId String
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  code   String
+  slug   String
+  name   String
+  status publication_status @default(draft)
+  passingScorePercent Int
+  officialScoreLabel  String?
+
+  examDurationMinutes Int
+  examQuestionCount   Int
+  defaultLanguage     content_language @default(pt_BR)
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([code])
+  @@unique([slug])
+  @@index([vendorId, status])
+  @@map("certification")
+}
+
+model Domain {
+  id              String        @id @default(uuid())
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  name     String
+  position Int
+  weightBasisPoints Int
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([certificationId, position])
+  @@index([certificationId])
+  @@map("domain")
+}
+
+model Subtopic {
+  id       String @id @default(uuid())
+  domainId String
+  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  name     String
+  position Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([domainId, position])
+  @@map("subtopic")
+}
+
+model Question {
+  id              String        @id @default(uuid())
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Restrict)
+  domainId        String
+  domain          Domain        @relation(fields: [domainId], references: [id], onDelete: Restrict)
+  subtopicId      String?
+  subtopic        Subtopic?     @relation(fields: [subtopicId], references: [id], onDelete: SetNull)
+
+  type       question_type
+  difficulty question_difficulty
+  language   content_language
+  source     question_source
+  stem       String
+  correctOptionCount Int
+  status             publication_status @default(draft)
+
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+  archivedAt  DateTime?
+
+  @@index([certificationId, status, domainId])
+  @@index([domainId, status])
+  @@map("question")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  position    Int
+  content     String
+  isCorrect   Boolean
+  explanation String
+
+  @@unique([questionId, position])
+  @@index([questionId])
+  @@map("question_option")
+}
