@@ -1,10 +1,4 @@
 node_modules/
 dist/
 .env
-
-# Local development database ref. Refs are per-environment pointers: `staging`
-# and `production` belong in version control because they tell CI where those
-# environments are expected to be. The local ref only describes the machine that
-# ran the migration, and the marker inside the database is already the
-# authoritative source of truth.
-migrations/app/refs/db.json
+/src/db/generated

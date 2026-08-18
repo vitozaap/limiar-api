@@ -1,0 +1,235 @@
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/db/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PublicationStatus {
+  draft
+  published
+  archived
+
+  @@map("publication_status")
+}
+
+enum QuestionType {
+  single
+  multiple
+
+  @@map("question_type")
+}
+
+enum QuestionDifficulty {
+  easy
+  medium
+  hard
+
+  @@map("question_difficulty")
+}
+
+enum QuestionSource {
+  ai_generated
+  manual
+
+  @@map("question_source")
+}
+
+enum ContentLanguage {
+  pt_BR @map("pt-BR")
+  en
+
+  @@map("content_language")
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  certifications Certification[]
+
+  @@map("vendor")
+}
+
+model Certification {
+  id       String @id @default(uuid())
+  vendorId String
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  code                String            @unique
+  slug                String            @unique
+  name                String
+  status              PublicationStatus @default(draft)
+  passingScorePercent Int
+  officialScoreLabel  String?
+
+  examDurationMinutes Int
+  examQuestionCount   Int
+  defaultLanguage     ContentLanguage @default(pt_BR)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  domains   Domain[]
+  questions Question[]
+
+  @@index([vendorId, status])
+  @@map("certification")
+}
+
+model Domain {
+  id              String        @id @default(uuid())
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  name              String
+  position          Int
+  weightBasisPoints Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subtopics Subtopic[]
+  questions Question[]
+
+  @@unique([certificationId, position])
+  @@index([certificationId])
+  @@map("domain")
+}
+
+model Subtopic {
+  id       String @id @default(uuid())
+  domainId String
+  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  name     String
+  position Int
+
+  createdAt DateTime @default(now())
+
+  questions Question[]
+
+  @@unique([domainId, position])
+  @@map("subtopic")
+}
+
+model Question {
+  id              String        @id @default(uuid())
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Restrict)
+  domainId        String
+  domain          Domain        @relation(fields: [domainId], references: [id], onDelete: Restrict)
+  subtopicId      String?
+  subtopic        Subtopic?     @relation(fields: [subtopicId], references: [id], onDelete: SetNull)
+
+  type               QuestionType
+  difficulty         QuestionDifficulty
+  language           ContentLanguage
+  source             QuestionSource
+  stem               String
+  correctOptionCount Int
+  status             PublicationStatus  @default(draft)
+
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+  archivedAt  DateTime?
+
+  options QuestionOption[]
+
+  @@index([certificationId, status, domainId])
+  @@index([domainId, status])
+  @@map("question")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  position    Int
+  content     String
+  isCorrect   Boolean
+  explanation String
+
+  @@unique([questionId, position])
+  @@index([questionId])
+  @@map("question_option")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          String?
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  issuer                String
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
