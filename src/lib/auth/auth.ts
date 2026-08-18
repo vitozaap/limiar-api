@@ -5,7 +5,6 @@ import { env } from "../env"
 import { createPrismaClient } from "../prisma"
 import { ac, roles } from "./permissions"
 
-
 export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
@@ -16,7 +15,7 @@ export const auth = betterAuth({
     ],
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.WEB_ORIGIN],
-    database: prismaAdapter(createPrismaClient, {
+    database: prismaAdapter(createPrismaClient(), {
         provider: "postgresql",
     }),
 })
