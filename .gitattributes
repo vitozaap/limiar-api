@@ -1,25 +1,5 @@
-# --- Prisma Next emitted artifacts ------------------------------------------
-# Produced by `contract emit` and `migration plan`. Excluded from language
-# stats and collapsed in review diffs.
-src/prisma/contract.json linguist-generated
-src/prisma/contract.d.ts linguist-generated
-migrations/snapshots/**/contract.json linguist-generated
-migrations/snapshots/**/contract.d.ts linguist-generated
-migrations/app/**/ops.json linguist-generated
-migrations/app/**/migration.json linguist-generated
-
-# --- Language classification -------------------------------------------------
-# migration.ts opens with `#!/usr/bin/env -S node`. Linguist evaluates shebangs
-# before extensions, sees `node`, and classifies the file as JavaScript. Without
-# this line the two migration.ts files account for the repository's entire
-# JavaScript share. Deliberately not linguist-generated: migration.ts is
-# hand-edited for data transforms, so its diff must stay visible in review.
-migrations/app/**/migration.ts linguist-language=TypeScript
-
 # --- Line endings ------------------------------------------------------------
-# The CLI writes these files with LF. Without normalization the Windows working
-# copy diverges from the blob and every touch produces diff noise. This does not
-# affect migrationHash, which is computed over canonical content, not raw bytes.
 *.ts text eol=lf
 *.json text eol=lf
 *.prisma text eol=lf
+*.sql text eol=lf
