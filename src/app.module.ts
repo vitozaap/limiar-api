@@ -2,11 +2,12 @@ import { Module } from "@nestjs/common"
 import { APP_FILTER } from "@nestjs/core"
 import { SentryGlobalFilter, SentryModule } from "@sentry/nestjs/setup"
 import { AuthModule } from "@thallesp/nestjs-better-auth"
-import type { BetterAuthOptions } from "better-auth"
 import { AppController } from "./app.controller"
 import { AuthConfigModule } from "./config/auth/auth.config.module"
 import { AUTH_CONFIG } from "./config/auth/symbols"
+import type { AuthConfigType } from "./config/auth/types"
 import { PrismaModule } from "./db/prisma.module"
+import { VendorsModule } from "./modules/vendors/vendors.module"
 
 @Module({
     imports: [
@@ -16,8 +17,10 @@ import { PrismaModule } from "./db/prisma.module"
             isGlobal: true,
             imports: [AuthConfigModule],
             inject: [AUTH_CONFIG],
-            useFactory: (config: BetterAuthOptions) => ({ auth: config }),
+            // The library owns CORS only when this is false; its method list has no PATCH.
+            useFactory: (auth: AuthConfigType) => ({ auth, disableTrustedOriginsCors: true }),
         }),
+        VendorsModule,
     ],
     controllers: [AppController],
     providers: [

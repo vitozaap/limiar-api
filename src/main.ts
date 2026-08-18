@@ -2,11 +2,12 @@ import "./instrument"
 import "reflect-metadata"
 import "dotenv/config"
 
-import type { INestApplication } from "@nestjs/common"
+import { type INestApplication, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger"
 import { apiReference } from "@scalar/nestjs-api-reference"
 import { AppModule } from "./app.module"
+import { env } from "./lib/env"
 
 function parsePort() {
     const rawPort = (process.env.PORT ?? "").trim()
@@ -45,6 +46,19 @@ async function bootstrap() {
         bodyParser: false,
     })
     const port = parsePort()
+    // Replaces the CORS the auth module would install, whose method list omits PATCH.
+    app.enableCors({
+        origin: [env.WEB_ORIGIN],
+        methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        credentials: true,
+    })
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
+        }),
+    )
     createDocumentation(app)
     await app.listen(port)
 }
