@@ -15,8 +15,19 @@
 		"expand": "auto",
 		"useEditorconfig": true
 	},
-	"linter": { "enabled": true, "rules": { "preset": "recommended" } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"style": {
+				"useImportType": "off"
+			}
+		}
+	},
 	"javascript": {
+		"parser": {
+			"unsafeParameterDecoratorsEnabled": true
+		},
 		"formatter": {
 			"jsxQuoteStyle": "double",
 			"quoteProperties": "asNeeded",
